@@ -8,11 +8,55 @@
 import { state } from './storage.js';
 import { calcStreak } from './app.js';
 
-const API_URL = 'https://api.anthropic.com/v1/messages';
+const API_URL = resolveCoachApiUrl();
 const MODEL = 'claude-sonnet-4-20250514';
 const MAX_TOKENS = 1000;
 
 let chatHistory = [];
+
+function resolveCoachApiUrl() {
+  const configuredUrl = window.OPERATION_SWOLE_CONFIG?.coachApiUrl;
+  if (configuredUrl) {
+    return configuredUrl;
+  }
+
+  return '/api/coach';
+}
+
+function fallbackCoachErrorMessage(status, detail) {
+  if (status === 503) {
+    return 'AI coach is not configured yet. Configure the hosted coach backend or start server.py/server.js with ANTHROPIC_API_KEY.';
+  }
+
+  if (status === 401 || status === 403) {
+    return 'AI coach authentication failed. Check the backend configuration and allowed origins.';
+  }
+
+  if (status === 404) {
+    return 'AI coach endpoint was not found. Set window.OPERATION_SWOLE_CONFIG.coachApiUrl for GitHub Pages or run the app through server.py/server.js locally.';
+  }
+
+  if (status >= 500) {
+    return detail || 'The AI coach service is temporarily unavailable. Please try again.';
+  }
+
+  return detail || 'The AI coach request failed. Check the local server setup and try again.';
+}
+
+async function parseResponsePayload(res) {
+  const contentType = res.headers.get('content-type') || '';
+  const rawBody = await res.text();
+
+  if (contentType.includes('application/json')) {
+    try {
+      return JSON.parse(rawBody);
+    } catch {
+      return { error: { message: 'Invalid JSON received from AI coach service.' } };
+    }
+  }
+
+  return { error: { message: rawBody || 'Unexpected response received from AI coach service.' } };
+}
 
 /**
  * Builds the system prompt injected into every API call.
@@ -71,7 +115,14 @@ export async function sendCoachMessage(text, onReply, onError) {
       }),
     });
 
-    const data = await res.json();
+    const data = await parseResponsePayload(res);
+    if (!res.ok) {
+      const detail = data?.error?.message || data?.detail || data?.error;
+      chatHistory.pop();
+      onError(fallbackCoachErrorMessage(res.status, detail));
+      return;
+    }
+
     const reply = data.content?.find(c => c.type === 'text')?.text
       || 'Sorry, I had trouble responding — please try again.';
 
@@ -79,7 +130,8 @@ export async function sendCoachMessage(text, onReply, onError) {
     onReply(reply);
   } catch (e) {
     console.error('Coach API error:', e);
-    onError('Connection error. Please check your network and try again.');
+    chatHistory.pop();
+    onError('Unable to reach the AI coach service. Check the hosted backend URL or start the local proxy server and try again.');
   }
 }
 

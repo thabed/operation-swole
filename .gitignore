@@ -9,3 +9,7 @@ Thumbs.db
 
 # Dependencies (if you ever add a build step)
 node_modules/
+
+# Python cache
+__pycache__/
+*.pyc

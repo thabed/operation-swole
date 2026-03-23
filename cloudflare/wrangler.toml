@@ -1,0 +1,6 @@
+name = "operation-swole-coach"
+main = "worker.js"
+compatibility_date = "2026-03-23"
+
+[vars]
+ALLOWED_ORIGINS = "https://thabed.github.io,http://127.0.0.1:8080,http://localhost:8080"
