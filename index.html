@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operation Swole — Gym Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-text" style="line-height:.85">OPERATION</div>
+      <div class="logo-text" style="line-height:.9">SWOLE</div>
+      <div class="logo-sub">Performance Tracker</div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-btn active" id="nav-dashboard" onclick="App.showView('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+        </svg>
+        Dashboard
+      </button>
+      <button class="nav-btn" id="nav-workouts" onclick="App.showView('workouts')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 5v14M18 5v14M4 7h4M16 7h4M4 17h4M16 17h4M10 12h4"/>
+        </svg>
+        Workouts
+      </button>
+      <button class="nav-btn" id="nav-log" onclick="App.showView('log')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+        Log Session
+      </button>
+      <button class="nav-btn" id="nav-progress" onclick="App.showView('progress')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Progress
+      </button>
+      <button class="nav-btn" id="nav-coach" onclick="App.showView('coach')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a7 7 0 0 1 7 7c0 3.87-7 13-7 13S5 12.87 5 9a7 7 0 0 1 7-7z"/>
+          <circle cx="12" cy="9" r="2.5"/>
+        </svg>
+        AI Coach
+      </button>
+    </nav>
+
+    <div class="sidebar-stats">
+      <div class="stat-pill">
+        <div class="label">Current Streak</div>
+        <div class="val" id="streak-val">0 DAYS</div>
+      </div>
+      <div class="stat-pill">
+        <div class="label">Sessions This Week</div>
+        <div class="val" id="sessions-week">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MAIN ===================== -->
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">DASHBOARD</div>
+          <div class="page-subtitle" id="greeting-text">Good to see you — let's get to work.</div>
+        </div>
+        <button class="btn btn-primary" onclick="App.showView('log')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Log Session
+        </button>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Overview</div>
+        <div class="progress-grid">
+          <div class="metric-card">
+            <div class="metric-val" id="total-sessions-val">0</div>
+            <div class="metric-label">Total Sessions</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="total-volume-val">0</div>
+            <div class="metric-label">Total Volume (kg)</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="pr-count-val">0</div>
+            <div class="metric-label">PRs Set</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Activity — last 5 weeks</div>
+        <div class="streak-grid" id="streak-grid"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Recent Sessions</div>
+        <div id="recent-sessions">
+          <div class="empty">
+            <div class="empty-icon">🏋️</div>
+            <h3>No sessions yet</h3>
+            <p>Log your first workout to get started.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKOUTS -->
+    <div class="view" id="view-workouts">
+      <div class="page-header">
+        <div>
+          <div class="page-title">WORKOUTS</div>
+          <div class="page-subtitle">Build and manage your training routines.</div>
+        </div>
+        <button class="btn btn-primary" onclick="App.openWorkoutModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          New Workout
+        </button>
+      </div>
+      <div class="section">
+        <div id="workouts-list">
+          <div class="empty">
+            <div class="empty-icon">📋</div>
+            <h3>No workouts yet</h3>
+            <p>Create your first routine to get started.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG SESSION -->
+    <div class="view" id="view-log">
+      <div class="page-header">
+        <div>
+          <div class="page-title">LOG SESSION</div>
+          <div class="page-subtitle">Track your performance today.</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="form-group">
+          <label>Select Workout</label>
+          <select id="log-workout-select" onchange="App.loadWorkoutForLog()">
+            <option value="">— Choose a workout —</option>
+          </select>
+        </div>
+        <div id="log-exercises"></div>
+        <div id="log-submit" style="display:none; margin-top:16px;">
+          <div class="form-group">
+            <label>Session Notes (optional)</label>
+            <textarea id="session-notes" placeholder="How did it feel? Any notes..." rows="2"></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="App.saveSession()">Save Session</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="view" id="view-progress">
+      <div class="page-header">
+        <div>
+          <div class="page-title">PROGRESS</div>
+          <div class="page-subtitle">Your performance over time.</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Volume Per Session</div>
+        <div class="card">
+          <div class="chart-container"><canvas id="volumeChart"></canvas></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Exercise PRs</div>
+        <div id="pr-list">
+          <div class="empty">
+            <div class="empty-icon">🏆</div>
+            <h3>No PRs recorded yet</h3>
+            <p>Log sessions to see your personal records.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI COACH -->
+    <div class="view" id="view-coach">
+      <div class="page-header" style="padding-bottom: 16px;">
+        <div>
+          <div class="page-title">AI COACH</div>
+          <div class="page-subtitle">Powered by Claude — knows your full training history.</div>
+        </div>
+      </div>
+      <div class="quick-prompts">
+        <button class="quick-btn" onclick="App.quickPrompt('Analyze my recent performance and give me feedback.')">Analyze my performance</button>
+        <button class="quick-btn" onclick="App.quickPrompt('What should I work on to break through a plateau?')">Beat a plateau</button>
+        <button class="quick-btn" onclick="App.quickPrompt(&quot;Give me a motivational message for today's workout.&quot;)">Motivate me</button>
+        <button class="quick-btn" onclick="App.quickPrompt('Suggest a deload week based on my volume.')">Deload advice</button>
+      </div>
+      <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+          <div class="msg ai">
+            <div class="msg-bubble">Hey! I'm your AI coach. I have access to all your workout history, PRs, and training patterns. Ask me anything — from analyzing your progress to planning your next training block. 💪</div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <textarea id="chat-input" placeholder="Ask your coach..." rows="1" onkeydown="App.handleChatKey(event)"></textarea>
+          <button class="btn btn-primary" onclick="App.sendMessage()" style="height:44px; width:44px; flex-shrink:0; padding:0; justify-content:center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ===================== WORKOUT MODAL ===================== -->
+<div class="modal-overlay" id="workout-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-workout-title">NEW WORKOUT</div>
+      <button class="modal-close" onclick="App.closeWorkoutModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Workout Name</label>
+      <input type="text" id="workout-name-input" placeholder="e.g. Push Day A">
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="workout-category">
+        <option>Push</option><option>Pull</option><option>Legs</option>
+        <option>Upper Body</option><option>Full Body</option><option>Cardio</option><option>Other</option>
+      </select>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div class="section-title" style="margin-bottom:10px;">Exercises</div>
+      <div id="exercise-list"></div>
+      <button class="btn btn-ghost btn-sm" onclick="App.addExerciseRow()" style="margin-top:8px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Add Exercise
+      </button>
+    </div>
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="App.closeWorkoutModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="App.saveWorkout()">Save Workout</button>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<!-- App entry point — expose as global so inline onclick handlers work -->
+<script type="module">
+  import * as AppModule from './app.js';
+  window.App = AppModule;
+  AppModule.init();
+</script>
+</body>
+</html>
