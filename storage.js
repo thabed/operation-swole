@@ -7,10 +7,20 @@
 
 const STORAGE_KEY = 'gym-state';
 
+const SETTINGS_DEFAULTS = {
+  availableDays:         [1, 2, 4, 5, 6], // Mon, Tue, Thu, Fri, Sat (getDay values)
+  hiitDay:               3,               // Wednesday
+  sessionDurationTarget: 60,              // minutes
+  pplRotationNext:       'push',
+  weeksHighVolume:       0,
+};
+
 export let state = {
   workouts: [],
   sessions: [],
-  prs: {},
+  prs:      {},
+  plan:     null,
+  settings: { ...SETTINGS_DEFAULTS },
 };
 
 async function storageGet(key) {
@@ -32,7 +42,18 @@ async function storageSet(key, value) {
 export async function loadState() {
   try {
     const raw = await storageGet(STORAGE_KEY);
-    if (raw) state = JSON.parse(raw);
+    if (raw) {
+      state = JSON.parse(raw);
+      // Forward-compatible: merge any missing settings keys
+      if (!state.settings) {
+        state.settings = { ...SETTINGS_DEFAULTS };
+      } else {
+        for (const [k, v] of Object.entries(SETTINGS_DEFAULTS)) {
+          if (state.settings[k] === undefined) state.settings[k] = v;
+        }
+      }
+      if (state.plan === undefined) state.plan = null;
+    }
   } catch (e) {
     console.warn('No saved state found, starting fresh.');
   }
@@ -43,19 +64,5 @@ export async function saveState() {
     await storageSet(STORAGE_KEY, JSON.stringify(state));
   } catch (e) {
     console.error('Failed to save state:', e);
-  }
-}
-
-const API_KEY_STORAGE = 'swole-api-key';
-
-export function getApiKey() {
-  return localStorage.getItem(API_KEY_STORAGE) || null;
-}
-
-export function saveApiKey(key) {
-  if (key) {
-    localStorage.setItem(API_KEY_STORAGE, key.trim());
-  } else {
-    localStorage.removeItem(API_KEY_STORAGE);
   }
 }

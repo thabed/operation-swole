@@ -44,12 +44,14 @@
         </svg>
         Progress
       </button>
-      <button class="nav-btn" id="nav-coach" onclick="App.showView('coach')">
+      <button class="nav-btn" id="nav-next" onclick="App.showView('next')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2a7 7 0 0 1 7 7c0 3.87-7 13-7 13S5 12.87 5 9a7 7 0 0 1 7-7z"/>
-          <circle cx="12" cy="9" r="2.5"/>
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
         </svg>
-        AI Coach
+        Next Workout
       </button>
     </nav>
 
@@ -195,48 +197,71 @@
       </div>
     </div>
 
-    <!-- AI COACH -->
-    <div class="view" id="view-coach">
-      <div class="page-header" style="padding-bottom: 16px;">
+    <!-- NEXT WORKOUT -->
+    <div class="view" id="view-next">
+      <div class="page-header" style="padding-bottom:16px;">
         <div>
-          <div class="page-title">AI COACH</div>
-          <div class="page-subtitle">Powered by Claude — knows your full training history.</div>
+          <div class="page-title">NEXT WORKOUT</div>
+          <div class="page-subtitle">Your training schedule for the week.</div>
         </div>
-      </div>
-      <div id="coach-key-setup" class="card" style="display:none; margin-bottom:16px;">
-        <div class="section-title" style="margin-bottom:8px;">Anthropic API Key Required</div>
-        <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">
-          Enter your <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent); text-decoration:none;">Anthropic API key</a> to activate the AI coach. It is stored only in your browser.
-        </p>
-        <div style="display:flex; gap:8px;">
-          <input type="password" id="api-key-input" placeholder="sk-ant-..." style="flex:1;">
-          <button class="btn btn-primary" onclick="App.saveCoachApiKey()">Save Key</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost" id="btn-plan-next-week" onclick="App.openPlanningModal(true)" style="display:none;">
+            Plan Next Week
+          </button>
+          <button class="btn btn-primary" onclick="App.openPlanningModal(false)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Plan This Week
+          </button>
         </div>
-      </div>
-      <div id="coach-key-bar" style="display:none; margin-bottom:12px; padding:8px 12px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--r); align-items:center; justify-content:space-between; font-size:12px;">
-        <span style="color:var(--muted);">API key configured</span>
-        <button class="btn btn-ghost btn-sm" onclick="App.changeCoachApiKey()">Change</button>
       </div>
 
-      <div class="quick-prompts">
-        <button class="quick-btn" onclick="App.quickPrompt('Analyze my recent performance and give me feedback.')">Analyze my performance</button>
-        <button class="quick-btn" onclick="App.quickPrompt('What should I work on to break through a plateau?')">Beat a plateau</button>
-        <button class="quick-btn" onclick="App.quickPrompt(&quot;Give me a motivational message for today's workout.&quot;)">Motivate me</button>
-        <button class="quick-btn" onclick="App.quickPrompt('Suggest a deload week based on my volume.')">Deload advice</button>
+      <!-- Today's workout card -->
+      <div class="section" id="today-section">
+        <div class="section-title">Today</div>
+        <div id="today-card"></div>
       </div>
-      <div class="chat-container">
-        <div class="chat-messages" id="chat-messages">
-          <div class="msg ai">
-            <div class="msg-bubble">Hey! I'm your AI coach. I have access to all your workout history, PRs, and training patterns. Ask me anything — from analyzing your progress to planning your next training block. 💪</div>
+
+      <!-- Week grid -->
+      <div class="section">
+        <div class="section-title">This Week</div>
+        <div id="week-grid">
+          <div class="empty">
+            <div class="empty-icon">📅</div>
+            <h3>No plan for this week</h3>
+            <p>Click "Plan This Week" to generate your schedule.</p>
           </div>
         </div>
-        <div class="chat-input-area">
-          <textarea id="chat-input" placeholder="Ask your coach..." rows="1" onkeydown="App.handleChatKey(event)"></textarea>
-          <button class="btn btn-primary" onclick="App.sendMessage()" style="height:44px; width:44px; flex-shrink:0; padding:0; justify-content:center;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
-          </button>
+      </div>
+
+      <!-- Settings -->
+      <div class="section">
+        <div class="section-title" style="cursor:pointer;user-select:none;" onclick="App.toggleSettings()">
+          Training Settings <span id="settings-toggle-icon">▼</span>
+        </div>
+        <div id="settings-panel" style="display:none;">
+          <div class="card" style="margin-top:8px;">
+            <div class="form-group">
+              <label>HIIT / Class Day (fixed, not scheduled for lifting)</label>
+              <select id="settings-hiit-day" onchange="App.updateSettings()">
+                <option value="0">Sunday</option>
+                <option value="1">Monday</option>
+                <option value="2">Tuesday</option>
+                <option value="3" selected>Wednesday</option>
+                <option value="4">Thursday</option>
+                <option value="5">Friday</option>
+                <option value="6">Saturday</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Available Training Days</label>
+              <div id="settings-days-checkboxes" style="margin-top:8px;"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -279,11 +304,35 @@
   </div>
 </div>
 
+<!-- ===================== PLANNING MODAL ===================== -->
+<div class="modal-overlay" id="plan-modal">
+  <div class="modal" style="width:700px;">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="plan-modal-title">PLAN THIS WEEK</div>
+        <div id="plan-modal-subtitle" style="font-size:13px;color:var(--muted);margin-top:4px;"></div>
+      </div>
+      <button class="modal-close" onclick="App.closePlanningModal()">✕</button>
+    </div>
+    <div id="plan-modal-deload" class="deload-badge" style="display:none;margin-bottom:16px;">
+      High volume detected — a deload week is recommended.
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">
+      Drag cards to rearrange days. The HIIT day is fixed.
+    </p>
+    <div id="plan-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:24px;"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="App.regeneratePlan()">Regenerate</button>
+      <button class="btn btn-primary" onclick="App.confirmPlan()">Confirm Plan</button>
+    </div>
+  </div>
+</div>
+
 <!-- Chart.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="config.js"></script>
 
-<!-- App entry point — expose as global so inline onclick handlers work -->
+<!-- App entry point -->
 <script type="module">
   import * as AppModule from './app.js';
   window.App = AppModule;

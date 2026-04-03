@@ -28,27 +28,9 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Build static artifact
-        env:
-          COACH_API_URL: ${{ vars.COACH_API_URL }}
         run: |
-          if [ -z "$COACH_API_URL" ]; then
-            echo "COACH_API_URL is not set for this build. Add it as a repository variable or a github-pages environment variable."
-            exit 1
-          fi
-
-          if echo "$COACH_API_URL" | grep -q "your-subdomain"; then
-            echo "COACH_API_URL is still using the placeholder workers.dev URL. Update it before deploying Pages."
-            exit 1
-          fi
-
           mkdir -p dist
-          cp app.js coach.js index.html storage.js style.css README.md dist/
-          CONFIG_VALUE="\"$COACH_API_URL\""
-          cat > dist/config.js <<EOF
-          window.OPERATION_SWOLE_CONFIG = {
-            coachApiUrl: ${CONFIG_VALUE},
-          };
-          EOF
+          cp app.js planner.js index.html storage.js config.js style.css README.md dist/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
