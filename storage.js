@@ -45,3 +45,17 @@ export async function saveState() {
     console.error('Failed to save state:', e);
   }
 }
+
+const API_KEY_STORAGE = 'swole-api-key';
+
+export function getApiKey() {
+  return localStorage.getItem(API_KEY_STORAGE) || null;
+}
+
+export function saveApiKey(key) {
+  if (key) {
+    localStorage.setItem(API_KEY_STORAGE, key.trim());
+  } else {
+    localStorage.removeItem(API_KEY_STORAGE);
+  }
+}

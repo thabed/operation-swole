@@ -203,6 +203,21 @@
           <div class="page-subtitle">Powered by Claude — knows your full training history.</div>
         </div>
       </div>
+      <div id="coach-key-setup" class="card" style="display:none; margin-bottom:16px;">
+        <div class="section-title" style="margin-bottom:8px;">Anthropic API Key Required</div>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">
+          Enter your <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent); text-decoration:none;">Anthropic API key</a> to activate the AI coach. It is stored only in your browser.
+        </p>
+        <div style="display:flex; gap:8px;">
+          <input type="password" id="api-key-input" placeholder="sk-ant-..." style="flex:1;">
+          <button class="btn btn-primary" onclick="App.saveCoachApiKey()">Save Key</button>
+        </div>
+      </div>
+      <div id="coach-key-bar" style="display:none; margin-bottom:12px; padding:8px 12px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--r); align-items:center; justify-content:space-between; font-size:12px;">
+        <span style="color:var(--muted);">API key configured</span>
+        <button class="btn btn-ghost btn-sm" onclick="App.changeCoachApiKey()">Change</button>
+      </div>
+
       <div class="quick-prompts">
         <button class="quick-btn" onclick="App.quickPrompt('Analyze my recent performance and give me feedback.')">Analyze my performance</button>
         <button class="quick-btn" onclick="App.quickPrompt('What should I work on to break through a plateau?')">Beat a plateau</button>

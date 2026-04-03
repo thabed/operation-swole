@@ -66,10 +66,11 @@ function readRequestBody(req) {
 }
 
 async function handleCoachRequest(req, res) {
-  if (!API_KEY) {
+  const key = req.headers['x-user-api-key'] || API_KEY;
+  if (!key) {
     sendJson(res, 503, {
       error: 'AI coach is not configured.',
-      detail: 'Set the ANTHROPIC_API_KEY environment variable before starting server.js.',
+      detail: 'Set the ANTHROPIC_API_KEY environment variable before starting server.js, or enter your API key in the app.',
     });
     return;
   }
@@ -88,7 +89,7 @@ async function handleCoachRequest(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': API_KEY,
+        'x-api-key': key,
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify(payload),

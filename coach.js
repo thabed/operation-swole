@@ -5,7 +5,7 @@
  * and maintains conversation history within a session.
  */
 
-import { state } from './storage.js';
+import { state, getApiKey } from './storage.js';
 import { calcStreak } from './app.js';
 
 const API_URL = resolveCoachApiUrl();
@@ -25,7 +25,7 @@ function resolveCoachApiUrl() {
 
 function fallbackCoachErrorMessage(status, detail) {
   if (status === 503) {
-    return 'AI coach is not configured yet. Configure the hosted coach backend or start server.py/server.js with ANTHROPIC_API_KEY.';
+    return 'AI coach is not configured. Enter your Anthropic API key using the setup panel above, or start server.py/server.js with ANTHROPIC_API_KEY.';
   }
 
   if (status === 401 || status === 403) {
@@ -103,10 +103,14 @@ ${sessionSummaries.join('\n') || 'No sessions logged yet.'}`;
 export async function sendCoachMessage(text, onReply, onError) {
   chatHistory.push({ role: 'user', content: text });
 
+  const userKey = getApiKey();
+  const headers = { 'Content-Type': 'application/json' };
+  if (userKey) headers['X-User-Api-Key'] = userKey;
+
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         model: MODEL,
         max_tokens: MAX_TOKENS,

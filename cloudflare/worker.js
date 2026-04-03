@@ -13,10 +13,11 @@ export default {
       return jsonResponse({ error: 'Not found' }, 404, request, env);
     }
 
-    if (!env.ANTHROPIC_API_KEY) {
+    const apiKey = request.headers.get('x-user-api-key') || env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
       return jsonResponse({
         error: 'AI coach is not configured.',
-        detail: 'Set ANTHROPIC_API_KEY in your Cloudflare Worker secrets.',
+        detail: 'Set ANTHROPIC_API_KEY in your Cloudflare Worker secrets, or enter your API key in the app.',
       }, 503, request, env);
     }
 
@@ -37,7 +38,7 @@ export default {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          'x-api-key': env.ANTHROPIC_API_KEY,
+          'x-api-key': apiKey,
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify(payload),
@@ -82,7 +83,7 @@ function buildCorsHeaders(request, env) {
   return {
     'access-control-allow-origin': allowOrigin,
     'access-control-allow-methods': 'POST, OPTIONS',
-    'access-control-allow-headers': 'Content-Type',
+    'access-control-allow-headers': 'Content-Type, X-User-Api-Key',
     'access-control-max-age': '86400',
     vary: 'Origin',
   };

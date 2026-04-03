@@ -16,10 +16,11 @@ class OperationSwoleHandler(SimpleHTTPRequestHandler):
             self.send_error(404, 'Not found')
             return
 
-        if not API_KEY:
+        key = self.headers.get('X-User-Api-Key') or API_KEY
+        if not key:
             self._send_json(503, {
                 'error': 'AI coach is not configured.',
-                'detail': 'Set the ANTHROPIC_API_KEY environment variable before starting server.py.',
+                'detail': 'Set the ANTHROPIC_API_KEY environment variable before starting server.py, or enter your API key in the app.',
             })
             return
 
@@ -36,7 +37,7 @@ class OperationSwoleHandler(SimpleHTTPRequestHandler):
             data=json.dumps(payload).encode('utf-8'),
             headers={
                 'Content-Type': 'application/json',
-                'x-api-key': API_KEY,
+                'x-api-key': key,
                 'anthropic-version': '2023-06-01',
             },
             method='POST',

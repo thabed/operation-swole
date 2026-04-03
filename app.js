@@ -5,8 +5,8 @@
  * PR detection, and the progress chart.
  */
 
-import { state, loadState, saveState } from './storage.js';
-import { sendCoachMessage } from './coach.js';
+import { state, loadState, saveState, getApiKey, saveApiKey } from './storage.js';
+import { sendCoachMessage, clearChatHistory } from './coach.js';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -49,6 +49,7 @@ export function showView(name) {
 
   if (name === 'dashboard') renderDashboard();
   if (name === 'progress')  renderProgress();
+  if (name === 'coach')     renderCoachSetup();
 }
 
 // ---------------------------------------------------------------------------
@@ -474,6 +475,32 @@ export function handleChatKey(e) {
 }
 
 // ---------------------------------------------------------------------------
+// AI Coach — API Key Management
+// ---------------------------------------------------------------------------
+
+function renderCoachSetup() {
+  const hasKey = !!getApiKey();
+  document.getElementById('coach-key-setup').style.display = hasKey ? 'none' : 'block';
+  document.getElementById('coach-key-bar').style.display  = hasKey ? 'flex' : 'none';
+}
+
+export function saveCoachApiKey() {
+  const input = document.getElementById('api-key-input');
+  const key = input.value.trim();
+  if (!key) { alert('Please enter an API key.'); return; }
+  saveApiKey(key);
+  input.value = '';
+  clearChatHistory();
+  renderCoachSetup();
+}
+
+export function changeCoachApiKey() {
+  saveApiKey(null);
+  clearChatHistory();
+  renderCoachSetup();
+}
+
+// ---------------------------------------------------------------------------
 // Init
 // ---------------------------------------------------------------------------
 
@@ -487,4 +514,5 @@ export async function init() {
   setGreeting();
   await loadState();
   render();
+  renderCoachSetup();
 }
