@@ -257,6 +257,18 @@
                 <option value="6">Saturday</option>
               </select>
             </div>
+            <div class="form-group">
+              <label>Running Day (fixed, legs avoided the day before)</label>
+              <select id="settings-running-day" onchange="App.updateSettings()">
+                <option value="0">Sunday</option>
+                <option value="1">Monday</option>
+                <option value="2">Tuesday</option>
+                <option value="3">Wednesday</option>
+                <option value="4">Thursday</option>
+                <option value="5" selected>Friday</option>
+                <option value="6">Saturday</option>
+              </select>
+            </div>
             <div class="form-group" style="margin-bottom:0;">
               <label>Available Training Days</label>
               <div id="settings-days-checkboxes" style="margin-top:8px;"></div>

@@ -145,6 +145,7 @@ canvas { width: 100% !important; }
 .type-hiit .day-type-badge,   .type-hiit .plan-day-type   { background: rgba(232,255,71,.12); color: var(--accent); }
 .type-deload .day-type-badge, .type-deload .plan-day-type { background: rgba(196,181,253,.12); color: #c4b5fd; }
 .type-rest .day-type-badge,   .type-rest .plan-day-type   { background: var(--bg3); color: var(--muted); }
+.type-run .day-type-badge,    .type-run .plan-day-type    { background: rgba(125,211,252,.12); color: #7dd3fc; }
 
 /* ---- Today's workout card ---- */
 .today-card { border-color: var(--accent) !important; }

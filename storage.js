@@ -8,9 +8,10 @@
 const STORAGE_KEY = 'gym-state';
 
 const SETTINGS_DEFAULTS = {
-  availableDays:         [1, 2, 4, 5, 6], // Mon, Tue, Thu, Fri, Sat (getDay values)
-  hiitDay:               3,               // Wednesday
-  sessionDurationTarget: 60,              // minutes
+  availableDays:         [1, 2, 4],  // Mon, Tue, Thu
+  hiitDay:               3,          // Wednesday
+  runningDay:            5,          // Friday
+  sessionDurationTarget: 60,         // minutes
   pplRotationNext:       'push',
   weeksHighVolume:       0,
 };

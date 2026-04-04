@@ -40,11 +40,12 @@ function isoWeek(dateStr) {
 
 function findWorkoutForType(type, workouts) {
   if (!workouts.length) return null;
-  const cat = { push: 'push', pull: 'pull', legs: 'legs' }[type];
+  const catMap = { push: 'push', pull: 'pull', legs: 'legs', run: 'cardio' };
+  const cat = catMap[type];
   if (!cat) return null;
   const match = workouts.find(w =>
     w.category?.toLowerCase() === cat ||
-    w.name?.toLowerCase().includes(cat)
+    w.name?.toLowerCase().includes(type === 'run' ? 'run' : type)
   );
   return match?.id || null;
 }
@@ -147,10 +148,21 @@ export function proposePlan(state, forNextWeek = false) {
   const hiitIndex = hiitDow === 0 ? 6 : hiitDow - 1;
   if (hiitIndex >= 0 && hiitIndex <= 6) days[hiitIndex].type = 'hiit';
 
+  // Place fixed running day
+  const runDow   = settings.runningDay;
+  const runIndex = (runDow != null) ? (runDow === 0 ? 6 : runDow - 1) : -1;
+  if (runIndex >= 0 && runIndex <= 6) {
+    days[runIndex].type      = 'run';
+    days[runIndex].workoutId = findWorkoutForType('run', workouts);
+  }
+
+  // Fixed day indices used for adjacency constraint
+  const fixedIndices = [hiitIndex, runIndex].filter(i => i >= 0 && i <= 6);
+
   // Collect available lifting-day indices
   const liftingCandidates = [];
   for (let i = 0; i < 7; i++) {
-    if (days[i].type === 'hiit') continue;
+    if (days[i].type === 'hiit' || days[i].type === 'run') continue;
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
     if (settings.availableDays.includes(d.getDay())) liftingCandidates.push(i);
@@ -163,8 +175,8 @@ export function proposePlan(state, forNextWeek = false) {
   for (let li = 0; li < liftDays.length; li++) {
     let type = PPL_SEQUENCE[rotIdx % 3];
 
-    // Don't schedule legs adjacent to HIIT
-    if (type === 'legs' && Math.abs(liftDays[li] - hiitIndex) === 1) {
+    // Don't schedule legs adjacent to any fixed day (HIIT or running)
+    if (type === 'legs' && fixedIndices.some(fi => Math.abs(liftDays[li] - fi) === 1)) {
       const alt = PPL_SEQUENCE[(rotIdx + 1) % 3];
       if (alt !== 'legs') { type = alt; rotIdx++; }
     }
@@ -180,7 +192,7 @@ export function proposePlan(state, forNextWeek = false) {
     const todayStr = toISODate(today);
     for (const day of days) {
       if (day.date > todayStr) break;
-      if (day.type === 'rest' || day.type === 'hiit') continue;
+      if (day.type === 'rest' || day.type === 'hiit' || day.type === 'run') continue;
       const done = sessions.some(s => s.date.startsWith(day.date));
       day.status = done ? 'done' : (day.date < todayStr ? 'skipped' : 'pending');
     }

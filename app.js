@@ -27,6 +27,10 @@ export const DEFAULT_EXERCISES = [
   { name: 'Curl',                   muscles: 'Arms',      defaultSets: 3, defaultReps: '12'     },
   { name: 'Tricep Pushdown',        muscles: 'Arms',      defaultSets: 3, defaultReps: '12'     },
   { name: 'Plank',                  muscles: 'Core',      defaultSets: 3, defaultReps: '60s'    },
+  { name: 'Leg Press',              muscles: 'Legs',      defaultSets: 3, defaultReps: '10-12'  },
+  { name: 'Leg Curl',               muscles: 'Legs',      defaultSets: 3, defaultReps: '12'     },
+  { name: 'Calf Raise',             muscles: 'Legs',      defaultSets: 3, defaultReps: '15'     },
+  { name: 'Face Pull',              muscles: 'Shoulders', defaultSets: 3, defaultReps: '15'     },
 ];
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -493,12 +497,13 @@ function renderTodayCard(plan, todayStr) {
 
   todaySection.style.display = 'block';
 
-  if (todayDay.type === 'hiit') {
+  if (todayDay.type === 'hiit' || todayDay.type === 'run') {
+    const label = todayDay.type === 'run' ? 'Running 🏃' : 'High Intensity Class ⚡';
     todayCardEl.innerHTML = `
       <div class="card today-card">
         <div style="display:flex;align-items:center;justify-content:space-between;">
           <div>
-            <div class="workout-name" style="font-size:16px;">High Intensity Class ⚡</div>
+            <div class="workout-name" style="font-size:16px;">${label}</div>
             <div class="workout-meta" style="margin-top:4px;">Fixed session — no pre-filled targets</div>
           </div>
           ${todayDay.status === 'done' ? '<div class="pr-badge" style="color:var(--success);background:rgba(77,255,145,.15)">✓ Done</div>' : ''}
@@ -588,6 +593,7 @@ function renderWeekGrid(plan, todayStr) {
     const icon      = day.status === 'done' ? '✓'
                     : isToday && day.type !== 'rest' ? '→'
                     : day.type === 'hiit' ? '⚡'
+                    : day.type === 'run'  ? '🏃'
                     : day.type === 'rest' ? ''
                     : day.status === 'skipped' ? '—'
                     : '·';
@@ -688,12 +694,12 @@ export function confirmPlan() {
 function renderPlanGrid() {
   const el = document.getElementById('plan-grid');
   el.innerHTML = proposedPlan.days.map((day, i) => {
-    const isHiit   = day.type === 'hiit';
-    const draggable = !isHiit ? 'true' : 'false';
+    const isFixed  = day.type === 'hiit' || day.type === 'run';
+    const draggable = !isFixed ? 'true' : 'false';
     const dateNum  = new Date(day.date + 'T00:00:00').getDate();
 
     return `
-      <div class="plan-day-card type-${day.type}${isHiit ? ' hiit-fixed' : ''}"
+      <div class="plan-day-card type-${day.type}${isFixed ? ' hiit-fixed' : ''}"
            data-index="${i}"
            draggable="${draggable}"
            ondragstart="App.handleDragStart(event,${i})"
@@ -704,7 +710,7 @@ function renderPlanGrid() {
         <div class="plan-day-name">${DAY_NAMES[i]}</div>
         <div class="plan-day-num">${dateNum}</div>
         <div class="plan-day-type">${day.type.toUpperCase()}</div>
-        ${isHiit ? '<div class="plan-fixed-label">fixed</div>' : ''}
+        ${isFixed ? '<div class="plan-fixed-label">fixed</div>' : ''}
       </div>`;
   }).join('');
 }
@@ -737,8 +743,8 @@ export function handleDrop(event, targetIndex) {
   const src = proposedPlan.days[dragSourceIdx];
   const tgt = proposedPlan.days[targetIndex];
 
-  // Disallow swapping with HIIT
-  if (src.type === 'hiit' || tgt.type === 'hiit') return;
+  // Disallow swapping with fixed days
+  if (src.type === 'hiit' || src.type === 'run' || tgt.type === 'hiit' || tgt.type === 'run') return;
 
   [src.type,      tgt.type]      = [tgt.type,      src.type];
   [src.workoutId, tgt.workoutId] = [tgt.workoutId, src.workoutId];
@@ -771,6 +777,10 @@ function renderSettingsPanel() {
   const hiitSel = document.getElementById('settings-hiit-day');
   hiitSel.value = state.settings.hiitDay;
 
+  // Running day select
+  const runSel = document.getElementById('settings-running-day');
+  runSel.value = state.settings.runningDay;
+
   // Available days checkboxes
   const container = document.getElementById('settings-days-checkboxes');
   container.innerHTML = DOW_NAMES.map((name, dow) => {
@@ -783,7 +793,8 @@ function renderSettingsPanel() {
 }
 
 export function updateSettings() {
-  state.settings.hiitDay = parseInt(document.getElementById('settings-hiit-day').value);
+  state.settings.hiitDay    = parseInt(document.getElementById('settings-hiit-day').value);
+  state.settings.runningDay = parseInt(document.getElementById('settings-running-day').value);
 
   const checkedDays = [...document.querySelectorAll('#settings-days-checkboxes input:checked')]
     .map(cb => parseInt(cb.value));
@@ -796,6 +807,48 @@ export function updateSettings() {
 // Init
 // ---------------------------------------------------------------------------
 
+function seedStarterWorkouts() {
+  state.workouts = [
+    {
+      id: 'starter-push', name: 'Push Day', category: 'Push',
+      exercises: [
+        { name: 'Bench Press',            muscles: 'Chest',     sets: '4', reps: '6-8'   },
+        { name: 'Overhead Press',         muscles: 'Shoulders', sets: '3', reps: '8'     },
+        { name: 'Incline Dumbbell Press', muscles: 'Chest',     sets: '3', reps: '10-12' },
+        { name: 'Tricep Pushdown',        muscles: 'Arms',      sets: '3', reps: '12'    },
+        { name: 'Lateral Raise',          muscles: 'Shoulders', sets: '3', reps: '15'    },
+      ],
+    },
+    {
+      id: 'starter-pull', name: 'Pull Day', category: 'Pull',
+      exercises: [
+        { name: 'Deadlift',  muscles: 'Back',      sets: '3', reps: '5'    },
+        { name: 'Pull-Up',   muscles: 'Back',      sets: '3', reps: '8-10' },
+        { name: 'Row',       muscles: 'Back',      sets: '3', reps: '10'   },
+        { name: 'Curl',      muscles: 'Arms',      sets: '3', reps: '12'   },
+        { name: 'Face Pull', muscles: 'Shoulders', sets: '3', reps: '15'   },
+      ],
+    },
+    {
+      id: 'starter-legs', name: 'Legs Day', category: 'Legs',
+      exercises: [
+        { name: 'Squat',              muscles: 'Legs', sets: '4', reps: '5'     },
+        { name: 'Romanian Deadlift',  muscles: 'Legs', sets: '3', reps: '10'    },
+        { name: 'Leg Press',          muscles: 'Legs', sets: '3', reps: '10-12' },
+        { name: 'Leg Curl',           muscles: 'Legs', sets: '3', reps: '12'    },
+        { name: 'Calf Raise',         muscles: 'Legs', sets: '3', reps: '15'    },
+      ],
+    },
+    {
+      id: 'starter-run', name: 'Running', category: 'Cardio',
+      exercises: [
+        { name: 'Run', muscles: 'Cardio', sets: '1', reps: '5km' },
+      ],
+    },
+  ];
+  saveState();
+}
+
 function setGreeting() {
   const h = new Date().getHours();
   const g = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
@@ -805,6 +858,7 @@ function setGreeting() {
 export async function init() {
   setGreeting();
   await loadState();
+  if (!state.workouts.length) seedStarterWorkouts();
   render();
   renderNextWorkout();
 }
